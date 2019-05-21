@@ -57,13 +57,17 @@ class BookReservationTest extends TestCase
     {
         $this->post('/books', [
             'title' => 'A song of ice and fire',
-            'author' => ''
+            'author' => 'George R.R.Martin'
+        ]);
+        $book = Book::first();
+
+        $response = $this->patch('/books/'.$book->id, [
+            'title' => 'title updated',
+            'author' => 'George R.R.Martin'
         ]);
 
-        $response = $this->patch('/books/1', [
-            'title' => 'title updated',
-        ]);
-        $this->assertEquals('title updated', Book::first()->title);
+        $this->assertEquals('title updated', $book->fresh()->title);
     }
+
 
 }
