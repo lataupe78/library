@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Author;
 use App\Models\Book;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -12,17 +13,30 @@ class BookManagementTest extends TestCase
 
     use RefreshDatabase;
 
+
+    private function data(){
+
+        return [
+            'title' => 'A song of ice and fire',
+            'author_id' => [
+                'first_name' => 'George R.R',
+                'last_name' => 'Martin'
+            ]
+        ];
+    }
+
+
     /** @test */
     public function a_book_can_be_added()
     {
-        $this->withoutExceptionHandling();
+        //$this->withoutExceptionHandling();
 
-        $response = $this->post('/books', [
-            'title' => 'A song of ice and fire',
-            'author' => 'George R.R.Martin'
-        ]);
+        $response = $this->post('/books', $this->data());
 
         $this->assertCount(1, Book::all());
+        $this->assertCount(1, Author::all());
+
+        $this->assertEquals('Martin', Author::first()->last_name);
         //$response->assertStatus(200);
     }
 
@@ -30,10 +44,9 @@ class BookManagementTest extends TestCase
     /** @test */
     public function title_is_required()
     {
-        $response = $this->post('/books', [
-            'title' => '',
-            'author' => 'George R.R.Martin'
-        ]);
+        //$this->withoutExceptionHandling();
+        $response = $this->post('/books', array_merge($this->data(), [
+            'title' => '']));
 
         $response->assertSessionHasErrors('title');
     }
@@ -42,28 +55,38 @@ class BookManagementTest extends TestCase
     /** @test */
     public function author_is_required()
     {
-        $response = $this->post('/books', [
-            'title' => 'A song of ice and fire',
-            'author' => ''
-        ]);
+        //$this->withoutExceptionHandling();
 
-        $response->assertSessionHasErrors('author');
+        $response = $this->post('/books', array_merge($this->data(), [
+            'author_id' => []]));
+        // dump($this->app['session.store']);
+        $response->assertSessionHasErrors('author_id');
+    }
+
+
+    /** @test */
+    public function author_last_name_is_required()
+    {
+        //$this->withoutExceptionHandling();
+
+        $response = $this->post('/books', array_merge($this->data(), [
+            'author_id' => ['last_name' => null ]
+        ]));
+
+        //dump($this->app['session.store']);
+        //dump($this->app['session.errors']);
+        $response->assertSessionHasErrors('author_id.last_name');
     }
 
 
     /** @test */
     public function book_can_be_updated()
     {
-        $this->post('/books', [
-            'title' => 'A song of ice and fire',
-            'author' => 'George R.R.Martin'
-        ]);
+        $this->post('/books', $this->data());
         $book = Book::first();
 
-        $response = $this->patch($book->path(), [
-            'title' => 'title updated',
-            'author' => 'George R.R.Martin'
-        ]);
+        $response = $this->patch($book->path(),array_merge($this->data(), [
+            'title' => 'title updated']));
 
         $this->assertEquals('title updated', $book->fresh()->title);
         $response->assertRedirect($book->fresh()->path());
@@ -73,10 +96,7 @@ class BookManagementTest extends TestCase
     /** @test */
     public function book_can_be_deleted()
     {
-        $this->post('/books', [
-            'title' => 'A song of ice and fire',
-            'author' => 'George R.R.Martin'
-        ]);
+        $this->post('/books', $this->data());
         $this->assertCount(1, Book::all());
 
         $book = Book::first();
@@ -85,4 +105,17 @@ class BookManagementTest extends TestCase
 
         $response->assertRedirect('/books');
     }
+
+
+    /** @test */
+    public function a_new_author_is_automatically_added(){
+       $this->post('/books', $this->data());
+
+       $book = Book::first();
+       $author = Author::first();
+
+       $this->assertCount(1, Book::all());
+       $this->assertEquals($author->id, $book->author_id);
+   }
+
 }

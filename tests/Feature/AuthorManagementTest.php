@@ -18,16 +18,23 @@ class AuthorManagementTest extends TestCase
 		$this->withoutExceptionHandling();
 
 		$this->post('/author', [
-			'name' => 'Author Name',
-			'birth_date' => '28-02-1978'
+			'last_name' => 'Hugo',
+			'first_name' => 'Victor',
+			'birth_date' => '26-02-1802',
+			'death_date' => '22-05-1885'
 		]);
 
 
 
 		$this->assertCount(1, Author::all());
+
 		$author= Author::first();
+
+		$this->assertEquals('Victor', $author->first_name);
+		$this->assertEquals('Hugo', $author->last_name);
 		$this->assertInstanceOf(Carbon::class, $author->birth_date);
-		$this->assertEquals('1978/02/28', $author->birth_date->format('Y/m/d'));
+		$this->assertInstanceOf(Carbon::class, $author->death_date);
+		$this->assertEquals('1802/02/26', $author->birth_date->format('Y/m/d'));
 
 	}
 }

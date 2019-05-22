@@ -15,7 +15,11 @@ class CreateAuthorsTable extends Migration
     {
         Schema::create('authors', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
+
+            $table->string('first_name');
+            $table->string('last_name');
+
+            $table->text('biotgraphy')->nullable();
 
             $table->date('birth_date')->nullable();
             $table->date('death_date')->nullable();

@@ -14,7 +14,7 @@ class BookController extends Controller
 	}
 
 	public function store(BookRequest $request){
-
+		//dd($request->validated());
 		$book = Book::create($request->validated());
 		return redirect($book->path());
 	}
